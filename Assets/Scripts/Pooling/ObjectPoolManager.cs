@@ -57,8 +57,7 @@ public class ObjectPoolManager : MonoBehaviour
 
         obj.transform.SetPositionAndRotation(position, rotation);
 
-        IPoolable poolable = obj.GetComponent<IPoolable>();
-        poolable?.OnGetFromPool();
+        obj.GetComponent<PoolIdentity>()?.poolable?.OnGetFromPool();
 
         return obj;
     }
@@ -88,8 +87,7 @@ public class ObjectPoolManager : MonoBehaviour
 
         obj.transform.SetPositionAndRotation(position, rotation);
 
-        IPoolable poolable = obj.GetComponent<IPoolable>();
-        poolable?.OnGetFromPool();
+        obj.GetComponent<PoolIdentity>()?.poolable?.OnGetFromPool();
 
         return obj;
     }
@@ -109,6 +107,11 @@ public class ObjectPoolManager : MonoBehaviour
             Destroy(obj);
             return;
         }
+
+        // Called here (once, with the identity already in hand) instead of
+        // inside the pool's actionOnRelease, so releasing an object never
+        // needs a second PoolIdentity lookup.
+        identity.poolable?.OnReturnToPool();
 
         if (!string.IsNullOrEmpty(identity.poolKey) && keyedPools.ContainsKey(identity.poolKey))
         {
@@ -140,6 +143,8 @@ public class ObjectPoolManager : MonoBehaviour
                 }
 
                 identity.prefab = prefab;
+                // Cache once per object, at creation — not on every Get/Release.
+                identity.poolable = obj.GetComponent<IPoolable>();
 
                 return obj;
             },
@@ -149,9 +154,8 @@ public class ObjectPoolManager : MonoBehaviour
             },
             actionOnRelease: obj =>
             {
-                IPoolable poolable = obj.GetComponent<IPoolable>();
-                poolable?.OnReturnToPool();
-
+                // OnReturnToPool() is invoked by ReleaseObject() before this
+                // runs, using the PoolIdentity it already looked up.
                 obj.SetActive(false);
             },
             actionOnDestroy: obj =>
@@ -181,6 +185,8 @@ public class ObjectPoolManager : MonoBehaviour
                 }
 
                 identity.poolKey = key;
+                // Cache once per object, at creation — not on every Get/Release.
+                identity.poolable = obj.GetComponent<IPoolable>();
 
                 return obj;
             },
@@ -190,9 +196,8 @@ public class ObjectPoolManager : MonoBehaviour
             },
             actionOnRelease: obj =>
             {
-                IPoolable poolable = obj.GetComponent<IPoolable>();
-                poolable?.OnReturnToPool();
-
+                // OnReturnToPool() is invoked by ReleaseObject() before this
+                // runs, using the PoolIdentity it already looked up.
                 obj.SetActive(false);
             },
             actionOnDestroy: obj =>
