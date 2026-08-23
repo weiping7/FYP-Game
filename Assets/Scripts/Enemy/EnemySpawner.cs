@@ -29,6 +29,53 @@ public class EnemySpawner : MonoBehaviour
 
     public static readonly List<EnemyStats> activeEnemies = new List<EnemyStats>();
 
+    private static EnemySpawner activeSpawner;
+
+    /// <summary>
+    /// The spawner currently in the scene. EnemyStats.Kill() needs this on every
+    /// single enemy death; resolving it with FindAnyObjectByType() each time was
+    /// a full-scene scan that got slower as more enemies spawned, and it was
+    /// paid identically with pooling on or off.
+    /// </summary>
+    public static EnemySpawner Active
+    {
+        get
+        {
+            if (activeSpawner != null)
+            {
+                return activeSpawner;
+            }
+
+            activeSpawner = FindAnyObjectByType<EnemySpawner>();
+            return activeSpawner;
+        }
+    }
+
+    private void Awake()
+    {
+        activeSpawner = this;
+    }
+
+    private void OnDestroy()
+    {
+        if (activeSpawner == this)
+        {
+            activeSpawner = null;
+        }
+    }
+
+    /// <summary>
+    /// Static state survives entering Play Mode when Domain Reload is disabled.
+    /// Clearing it here guarantees every performance-test run starts from the
+    /// same state instead of inheriting the previous run's leftovers.
+    /// </summary>
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStaticState()
+    {
+        activeSpawner = null;
+        activeEnemies.Clear();
+    }
+
     [Header("Fallback Waves")]
     public List<Wave> waves;
     public int currentWaveCount;
@@ -61,10 +108,12 @@ public class EnemySpawner : MonoBehaviour
 
     private void Start()
     {
-        PlayerMovement playerMovement = FindAnyObjectByType<PlayerMovement>();
-        if (playerMovement == null)
+        // Resolving through PlayerLocator also warms its cache, so the first
+        // enemy spawned does not have to pay for a scene scan either.
+        Transform playerTransform = PlayerLocator.Player;
+        if (playerTransform == null)
         {
-            Debug.LogError("EnemySpawner: PlayerMovement not found.");
+            Debug.LogError("EnemySpawner: Player not found.");
             enabled = false;
             return;
         }
@@ -83,7 +132,7 @@ public class EnemySpawner : MonoBehaviour
             return;
         }
 
-        player = playerMovement.transform;
+        player = playerTransform;
         normalEnemyPrefab ??= GetFallbackEnemyPrefab();
 
         if (!moduleStageManaged)

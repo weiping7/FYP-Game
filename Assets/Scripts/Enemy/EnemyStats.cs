@@ -74,7 +74,9 @@ public class EnemyStats : MonoBehaviour, IPoolable
         isDead = true;
         LootPickup.Spawn(LootType.Experience, currentExperienceReward, transform.position);
         LootPickup.Spawn(LootType.Coin, currentCoinReward, transform.position);
-        EnemySpawner es = FindAnyObjectByType<EnemySpawner>();
+        // Cached lookup: this runs on every enemy death, and a full-scene scan
+        // here cost more than the Instantiate() that pooling saves.
+        EnemySpawner es = EnemySpawner.Active;
 
         if (es != null)
         {

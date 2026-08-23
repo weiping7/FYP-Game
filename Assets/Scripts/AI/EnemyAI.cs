@@ -94,8 +94,10 @@ public class EnemyAI : MonoBehaviour
 
     private void FindPlayer()
     {
-        GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
-        player = playerObject != null ? playerObject.transform : null;
+        // Reads a cached reference instead of scanning the whole scene. This
+        // runs on every spawn and every pool reuse via OnEnable(), so a
+        // scene-wide search here was the dominant per-spawn cost.
+        player = PlayerLocator.Player;
     }
 
     private float GetDetectionRadius()

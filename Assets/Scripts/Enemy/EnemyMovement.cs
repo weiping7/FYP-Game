@@ -45,7 +45,9 @@ public class EnemyMovement : MonoBehaviour, IEnemyMotor
 
     private void FindPlayer()
     {
-        PlayerMovement playerMovement = FindAnyObjectByType<PlayerMovement>();
-        player = playerMovement != null ? playerMovement.transform : null;
+        // Reads a cached reference instead of scanning the whole scene. This
+        // runs on every spawn and every pool reuse via OnEnable(), so a
+        // scene-wide search here was the dominant per-spawn cost.
+        player = PlayerLocator.Player;
     }
 }

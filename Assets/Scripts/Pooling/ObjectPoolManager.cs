@@ -13,11 +13,11 @@ public class ObjectPoolManager : MonoBehaviour
     readonly Dictionary<string, ObjectPool<GameObject>> keyedPools = new();
 
     [Header("Pool Settings")]
-    // Master switch for the performance A/B test: when false, every Get/Release
-    // call below bypasses pooling entirely and behaves like plain
-    // Instantiate()/Destroy(), across every system that routes through this
-    // manager (enemies, weapon projectiles, weapon visual effects). Toggle
-    // this instead of maintaining a second, unpooled code path to compare against.
+    /* Master switch for the performance A/B test: when false, every Get/Release
+    call below bypasses pooling entirely and behaves like plain
+    Instantiate()/Destroy(), across every system that routes through this
+    manager (enemies, weapon projectiles, weapon visual effects). Toggle
+    this instead of maintaining a second, unpooled code path to compare against.*/
     public bool poolingEnabled = true;
     public int defaultCapacity = 30;
     public int maxSize = 300;
