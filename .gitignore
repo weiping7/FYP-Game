@@ -12,6 +12,15 @@
 /[Uu]ser[Ss]ettings/
 *.log
 
+# Project-local scratch and Unity recovery content
+/_to_delete/
+/tools/
+/Assets/_Recovery/
+/Assets/_Recovery.meta
+/Assets/TextMesh Pro/Examples & Extras/
+/Assets/TextMesh Pro/Examples & Extras.meta
+/Assets/Resources/PerformanceTestRun*.json*
+
 # MemoryCaptures can get excessive in size.
 # They also could contain extremely sensitive data
 /[Mm]emoryCaptures/
